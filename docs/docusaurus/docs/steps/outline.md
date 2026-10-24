@@ -22,6 +22,8 @@ The Plan says what changes; the Outline says how it is built, slice by slice. Th
 
 The build map lists the slices in the order they are built. Open a slice for its tasks and tests. Each **Done means** point links to the scenario and slice that prove it.
 
+For a bug, the Outline keeps reproduction before the root-cause repair and includes the named regression checks. It uses the slices the repair needs; the final project checks run in Verify.
+
 The build session works through the cards in this order. Cards name source files; a file outside the cards needs no amendment, and Review lists it. Check output and pictures stay in the task’s records.
 
 ## What you do {#what-you-do}

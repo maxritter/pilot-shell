@@ -18,7 +18,7 @@ const text = (route) => page(route)
   .replace(/\s+/g, " ");
 
 test("App illustrations open at full size from each guide, with an accessible name and the right theme", () => {
-  for (const route of ["", "app/", "steps/discuss/", "steps/plan/", "steps/implement/", "steps/verify/", "steps/review/", "artifacts/", "memory/", "reference/settings/"]) {
+  for (const route of ["", "app/", "chat/", "steps/discuss/", "steps/plan/", "steps/implement/", "steps/verify/", "steps/review/", "artifacts/", "memory/", "reference/settings/"]) {
     const html = page(route);
     const links = [...html.matchAll(/<a\b[^>]*class="ql-diagram"[^>]*>[\s\S]*?<\/a>/g)].map((m) => m[0]);
     assert.ok(links.length >= 2, `${route}: no full-size illustrations; run npm run build first`);
@@ -33,6 +33,22 @@ test("App illustrations open at full size from each guide, with an accessible na
       assert.match(link, /Open full size/);
     }
   }
+});
+
+test("Chat is under App and team and leads with its themed workspace image", () => {
+  const html = page("chat/");
+  const categories = html.split(/(?=<li class="theme-doc-sidebar-item-category )/).slice(1);
+  const getStarted = categories.find((item) => item.includes(">Get started</span>"));
+  const appAndTeam = categories.find((item) => item.includes(">App and team</span>"));
+  assert.ok(getStarted && appAndTeam, "Both existing sidebar categories must remain");
+  assert.doesNotMatch(getStarted, /<a\b[^>]*href="\/docs\/chat"/);
+  assert.match(appAndTeam, /<a\b[^>]*href="\/docs\/chat"/);
+  const article = html.match(/<article\b[^>]*>([\s\S]*?)<\/article>/)?.[1];
+  assert.ok(article, "Chat must render a guide article");
+  const firstImage = article.indexOf("/img/app/chat-light.png");
+  const firstSection = article.indexOf('id="start"');
+  assert.ok(firstImage >= 0 && firstSection > firstImage, "The full workspace image must precede the how-to sections");
+  assert.match(article, /\/img\/app\/chat-dark\.png/);
 });
 
 test("the built guides explain current answers, complete Plan approval and live sharing", () => {
@@ -67,7 +83,7 @@ test("the built App guides use Files, Feedback and Agent and explain the current
   assert.match(app, /Open artifact canvas/);
   assert.match(app, /document header/);
   assert.match(app, /Agent status/);
-  assert.match(app, /Dollar amounts stay hidden until you open it/);
+  assert.match(app, /(?:Dollar amounts|Amounts) stay hidden until you open it/);
   assert.match(app, /tokens unpriced/);
   assert.doesNotMatch(app, /Artifacts.{0,20}tab|Comments.{0,30}Files.{0,30}and.{0,30}Artifacts/);
   assert.match(page("steps/implement/"), /In the App/);
@@ -88,10 +104,10 @@ test("Memory distinguishes local retrieval, agent context and opt-in Git exchang
   const memory = text("memory/");
   assert.match(page("memory/"), /<figure[^>]+class="memory-flow"[^>]+aria-label="How a saved lesson reaches an agent"/);
   for (const label of ["Save a lesson", "Find it locally", "Use it in context"]) assert.ok(memory.includes(label));
-  assert.match(memory, /cloud-based agent may send that context to its provider/);
+  assert.match(memory, /(?:cloud-based|cloud) agent may send that context to its provider/);
   assert.match(memory, /without recorded passing checks/);
-  assert.match(memory, /Memory exchange itself never commits or pushes/);
-  assert.match(memory, /If hooks are disabled, unavailable or too slow/);
+  assert.match(memory, /Memory exchange(?: itself)? never commits or pushes/);
+  assert.match(memory, /If hooks are (?:off|disabled), unavailable or too slow, delivery can be skipped/);
   assert.match(memory, /Turning sharing off stops exchange/);
   assert.doesNotMatch(memory, /no text leaves your computer|writes lessons backed by recorded checks|QualityLayer never commits or pushes/);
   const html = page("memory/");

@@ -29,7 +29,7 @@ For **Feature** and **Bugfix**, **New task** and **Start the build** both ask wh
 - **In the App** (recommended): pick the agent, model, effort, project and branch. The agent opens beside the task, and every question and piece of feedback happens in the App.
 - **In my terminal**: copy one prompt into any coding agent, app or IDE. Files you attached are listed in the prompt by path. The agent asks its questions and takes your feedback in its own chat.
 
-Both screens open with your last choice. More in [Agent runs](app.md#agent-runs).
+A fresh launch starts **In the App**. An unfinished draft keeps your choice. If the agent cannot run there, the terminal option stays available. More in [Agent runs](app.md#agent-runs).
 
 Seven agents have [native setup and session controls](agents/native.md). Other coding agents [use the CLI and a copied prompt](agents/other.md). [Settings](reference/settings.md) cover agents, plan limits, reviewers and appearance.
 

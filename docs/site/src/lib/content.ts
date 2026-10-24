@@ -34,12 +34,12 @@ export const FAQS: Faq[] = [
   ),
   faq(
     "How is this different from plan mode?",
-    "Plan mode gives you a plan in the chat, then one long build that you check yourself. With QualityLayer, your agent asks its questions in one batch; answer in any order, and each answer reaches your agent immediately. Then it shows one plan with diagrams and clickable mockups, which you comment on and approve before any code is written. It builds the plan in tested slices and fixes what fails itself. An agent that did not write the code checks it against what you agreed, and you approve the finished change with its evidence.",
+    "Plan mode gives you a plan in the chat, then one long build that you check yourself. With QualityLayer, your agent asks only about unresolved choices; independent questions arrive together, and each answer reaches it immediately. Then it shows one plan with diagrams and clickable mockups, which you comment on and approve before any code is written. It builds the plan in tested slices and fixes what fails itself. An agent that did not write the code checks it against what you agreed, and you approve the finished change with its evidence.",
   ),
   CODE_LEAVES,
   faq(
     "What about small changes and bugs?",
-    "Choose Chat with Claude Code or Codex for a question, an exploration or a small change. Add a saved plan, slices, artifacts or checks when needed. Feature and Bugfix use the structured workflow, with a Plan you approve before implementation.",
+    "Use Chat with Claude Code or Codex to explore a question or work freely. Choose Feature or Bugfix for a Plan and review. Small changes keep a short Plan and one build step. Larger work gets more design detail; bugs start with reproduction. You approve before code and before shipping.",
   ),
   faq(
     "Can I run my agent in the App or browser?",

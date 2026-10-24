@@ -3,8 +3,8 @@ title: Pull request
 description: Choose to open a pull request from Review, then follow its checks and reviewers until you merge it.
 ---
 
-![The eight steps, with Pull request highlighted](pathname:///img/diagrams/track-pull-request-light.svg)
-![The eight steps, with Pull request highlighted](pathname:///img/diagrams/track-pull-request-dark.svg)
+![The workflow, with Pull request highlighted](pathname:///img/diagrams/track-pull-request-light.svg)
+![The workflow, with Pull request highlighted](pathname:///img/diagrams/track-pull-request-dark.svg)
 
 After **Approve and open a pull request** in [Review](review.md#approve), QualityLayer follows the pull request on GitHub until you merge it. It never merges.
 

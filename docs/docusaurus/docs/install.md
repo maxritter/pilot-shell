@@ -106,7 +106,7 @@ It removes QualityLayer's integrations from your coding agents (keeping a backup
 
 ## Windows with Intune or Defender Exploit Guard {#managed-windows}
 
-If setup fails with "Microsoft Defender Exploit Guard blocked an operation that was not allowed by your IT administrator", or files vanish after install: QualityLayer is not code-signed yet, and Defender blocks new unsigned programs.
+If setup fails with "Microsoft Defender Exploit Guard blocked an operation that was not allowed by your IT administrator", or files vanish after install: QualityLayer 12.1.0's Windows installer and programs have verified publisher signatures. A managed-device policy may still block them. Ask IT to check the signature, release checksum and policy that blocked the file.
 
 | Fix | How |
 | --- | --- |

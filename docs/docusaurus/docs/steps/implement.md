@@ -3,12 +3,12 @@ title: Implement
 description: Start the build in the App or your terminal. Your agent builds the approved Plan test first and decides when it is ready for Verify.
 ---
 
-![The eight steps, with Implement highlighted](pathname:///img/diagrams/track-implement-light.svg)
-![The eight steps, with Implement highlighted](pathname:///img/diagrams/track-implement-dark.svg)
+![The workflow, with Implement highlighted](pathname:///img/diagrams/track-implement-light.svg)
+![The workflow, with Implement highlighted](pathname:///img/diagrams/track-implement-dark.svg)
 
 ## Start the build {#start-implement}
 
-After you approve the Plan, **Start the build** appears on that Plan page. Choose where the agent runs and, with **In the App**, the agent, model, effort and branch for this build. The card opens with your last choice.
+After you approve the Plan, **Start the build** appears on that Plan page. Choose where the agent runs and, with **In the App**, the agent, model, effort and branch for this build. A fresh launch starts **In the App**. An unfinished draft keeps your choice. If the agent cannot run there, the terminal option stays available.
 
 ![The Implement start card](pathname:///img/app/implement-start-light.webp)
 ![The Implement start card](pathname:///img/app/implement-start-dark.webp)

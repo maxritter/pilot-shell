@@ -23,7 +23,7 @@ Read the task on the left and work with your agent in the right sidebar. Use the
 
 **+ New** offers **Chat** beside Feature and Bugfix. Chat starts a direct conversation with Claude Code or Codex. The conversation fills the task page, with **Conversation** and **Terminal** views of the same session and no workflow steps or approval gates.
 
-The agent's own questions appear as clickable choices, with number keys and a typed answer. Its task list shows pending, running and done items above the composer. The same task list also appears in workflow conversations. You can resume or archive a Chat like other tasks.
+In App-managed sessions, supported questions appear as clickable choices, with number keys and a typed answer. A task list appears when the agent reports one; expand it to see its statuses. Workflow conversations use the same task list. Outside Codex sessions stay read-only; answer in Codex's terminal. You can resume or archive a Chat like other tasks.
 
 Ask for a saved plan, slice building, artifacts, checks or an independent review as needed. **Start the workflow** asks Feature or Bugfix and moves this task into Discuss, keeping the conversation and saved work as context. Chat has no team sharing in this release. See [Chat](chat.md) for starting in a terminal and the optional tools.
 
@@ -38,7 +38,7 @@ Tasks sit under their project (a repository on this computer), those waiting on 
 | Reorder projects | Drag a header, or **⌥↑** / **⌥↓** |
 | Rename, recolor or hide a project | The project menu (**⋯** or right-click) |
 | Start a task in a project | **+** on its header |
-| Rename, archive or delete a task | Right-click it, or **⋯ More** in its header |
+| Rename, archive or delete a task | Right-click it. Archive, Restore and Delete are also in the task header; compact screens keep them in **More** |
 | Filter or regroup | **View** (sliders button) |
 
 Project order, colors, names and hidden projects are stored on the computer running the App, so every paired browser shows the same list.
@@ -63,7 +63,7 @@ Open the block for every limit window, when it resets and a breakdown of use. It
 
 ## Answering questions {#questions}
 
-Questions come in Discuss and Research. Independent questions arrive as a batch. **Your turn** shows one question at a time, and each answer reaches your agent at once.
+The App shows your agent's current question on the step it belongs to. Independent questions arrive as a batch. **Your turn** shows one question at a time, and each answer reaches your agent at once.
 
 | Control | Key | What it does |
 | --- | --- | --- |
@@ -86,7 +86,7 @@ Every step writes one Markdown file, shown three ways:
 | **Reader** | The whole file, with code shapes, paths and commands |
 | **Files** | All seven documents, artifacts, reviews and command records |
 
-**Copy document** pastes a document into Confluence, Notion, Jira or GitHub.
+**Copy document** in the document header lets you paste a document into Confluence, Notion, Jira or GitHub.
 
 ### The step page {#step-pages}
 
@@ -95,6 +95,8 @@ Questions and approvals come first. **Look here** lists anything only you can st
 ## Feedback and artifacts {#comments-and-artifacts}
 
 Select a passage, a line or part of a diagram and choose **Give feedback**. The thread keeps that context with your words. The **To** picker chooses the agent, a named teammate or **Everyone on the task** when access is known. Each recipient keeps its own draft. Person-only feedback never goes to the agent.
+
+If a linked document cannot be read for quoted feedback, **Drop quote** keeps your words and attached files as feedback on the document. Review the draft, then press **Send** yourself.
 
 Working artifacts are compact entries in **Files**. **Open artifact canvas** opens the full page. See [Artifacts](artifacts.md).
 
@@ -123,7 +125,7 @@ The **Cost** control in a task's header opens the cost per step and agent, estim
 
 ## Agent runs {#agent-runs}
 
-**New task** offers **Chat**, **Feature** and **Bugfix**. Chat supports Claude Code and Codex ([above](#chat)). For Feature and Bugfix, enter your request and files, then choose where the agent runs. **Start the build** asks the same last question. Both open with your last choice.
+**New task** offers **Chat**, **Feature** and **Bugfix**. Chat supports Claude Code and Codex ([above](#chat)). For Feature and Bugfix, enter your request and files, then choose where the agent runs. **Start the build** asks the same last question. A fresh launch starts **In the App**. An unfinished draft keeps your choice. If the agent cannot run there, the terminal option stays available.
 
 - **In the App** (recommended): pick the agent (Claude Code, Codex, Cursor, Grok, Antigravity, Pi or OpenCode), model, effort, project and branch. Its conversation opens in the task’s **Agent** tab, and you answer there.
 - **In my terminal**: copy one prompt into any coding agent, app or IDE. Attached files are saved on this computer and listed by path. The agent asks in its own chat; the App shows the questions without answering them.

@@ -55,8 +55,6 @@ Folds, grouping and rows belong to the App window, not to a file.
 
 ## What stays on your computer, and what leaves it {#privacy}
 
-![What stays on your computer, what the licence check sends, what sharing sends to the team service, and what a feedback report sends to a private issue](pathname:///img/diagrams/privacy-light.svg)
-![What stays on your computer, what the licence check sends, what sharing sends to the team service, and what a feedback report sends to a private issue](pathname:///img/diagrams/privacy-dark.svg)
 
 Your code, the diff, plan documents, evidence and the cost view stay on your computer until you share. Code your team reviews travels only through your own Git remote. Your agent still sends code to its own provider, as it always does.
 
@@ -77,7 +75,7 @@ Agent runs started in the App keep terminal output in local folders only you can
 
 ## Report a problem {#feedback}
 
-![Feedback: from the sidebar, the command box or an error, one sheet with your text, screenshots and diagnostics you can read first; it goes to a private issue, and offline it waits on your computer](pathname:///img/diagrams/feedback-light.svg)
-![Feedback: from the sidebar, the command box or an error, one sheet with your text, screenshots and diagnostics you can read first; it goes to a private issue, and offline it waits on your computer](pathname:///img/diagrams/feedback-dark.svg)
 
-**Report** in the sidebar sends your text, any screenshots, and diagnostics you can read first under **Show what is sent**. It becomes an issue in a private repository. Diagnostics never include code, plan text, task titles, repository or branch names, or file paths.
+**Report bug / idea** in the sidebar opens a report for the public `maxritter/qualitylayer` GitHub issues. Add a title, description and optional screenshots, then choose **Preview public issue**. Check the exact issue and choose **Create public GitHub issue** to publish it. Use **Private support** for confidential details.
+
+The report includes QualityLayer, operating-system and architecture details, plus the agent version when available. It does not add your account name, email, repository paths or terminal logs. Your own text and screenshots can contain private information, so review them before publishing.

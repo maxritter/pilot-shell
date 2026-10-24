@@ -3,10 +3,10 @@ title: Plan
 description: "The one document you approve before any code: what it rests on, the artifact and its decisions, and how you will know it works."
 ---
 
-![The eight steps, with Plan highlighted](pathname:///img/diagrams/track-plan-light.svg)
-![The eight steps, with Plan highlighted](pathname:///img/diagrams/track-plan-dark.svg)
+![The seven steps, with Plan highlighted](pathname:///img/diagrams/track-plan-light.svg)
+![The seven steps, with Plan highlighted](pathname:///img/diagrams/track-plan-dark.svg)
 
-The Plan is the one document you approve before any code is written. It puts the proposed change, key decisions and open issues first.
+The Plan is the one document you approve before any code is written. It puts the proposed change, key decisions and open issues first. A small change keeps this brief; larger changes include the design detail you need to review.
 
 ![The Plan in the App, with Approve Plan and Give feedback at the top right](pathname:///img/app/plan-light.webp)
 ![The Plan in the App, with Approve Plan and Give feedback at the top right](pathname:///img/app/plan-dark.webp)
@@ -22,8 +22,8 @@ The page shows the sections in the order of `03-plan.md`, so the file, the Reade
 | **Summary** | The change in a few lines, with the size of the build, whether it is risky and what reviewed it |
 | **Done means** | The results from [Discuss](discuss.md), and how each will be checked |
 | **The artifact** | A wireframe or finished artifact for anything people see ([Artifacts](../artifacts.md)) |
-| **Today and after the change** | The same view before and after, side by side |
-| **Engineering decisions** | Two sentences each, with the diagram open beside them where a picture is clearer |
+| **Today and after the change** | A view of the change when it makes the proposal clearer |
+| **Engineering decisions** | The consequential choices and their reasons, with a diagram where it helps |
 | **Not doing** | What stays untouched |
 | **Decisions made for you** | Your agent's smaller choices, with reasons |
 | **Assumptions** | What the Plan takes for granted |
@@ -43,13 +43,13 @@ Unresolved or unknown review findings stay visible. A recorded research source d
 
 ## Approve or give feedback {#answering}
 
-A choice that only appears once an artifact is drawn is a **Your call** (at most two). **Your turn** shows them one at a time, with the part of the Plan each concerns, and each answer reaches your agent immediately. Findings from the technical review return to the planning agent; only a new hard choice reaches you.
+A choice that only appears once an artifact is drawn is a **Your call**. **Your turn** shows them one at a time, with the part of the Plan each concerns, and each answer reaches your agent immediately. Findings from the technical review return to the planning agent; only a new hard choice reaches you.
 
 1. Read the complete Plan.
 2. Pin comments, or press **Give feedback**. Your agent revises; the diff shows what changed.
 3. Press **Approve Plan** at the top right. It approves the Plan, **Done means** and the artifact together.
 
-Only your click approves: answering a question does not approve the Plan.
+Answering a question does not approve the Plan. Approve in the App or give an explicit approval through your agent.
 
 ## Comment on a diagram {#diagrams}
 

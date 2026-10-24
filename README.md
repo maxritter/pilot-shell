@@ -99,7 +99,7 @@ Run `pilot update` to install QualityLayer v12, or download it directly. Keep Pi
 
 In the App or browser, choose **+ New**, then **Chat**, **Feature** or **Bugfix**. Pick your repository and agent, and describe what you need.
 
-**Chat** opens a full-width conversation with Claude Code or Codex, without workflow steps or approval gates. Answer the agent's clickable questions and follow its task list above the composer when it has one. Ask it to save a plan, build in slices, make artifacts, run checks or request an independent review. In a terminal, ask: “Using QualityLayer, chat about retrying failed webhooks.”
+**Chat** opens a full-width conversation with Claude Code or Codex, without workflow steps or approval gates. Answer supported questions in the App and follow its task list above the composer when it has one. Ask it to save a plan, build in slices, make artifacts, run checks or request an independent review. In a terminal, ask: “Using QualityLayer, chat about retrying failed webhooks.”
 
 Choose **Start the workflow**, then Feature or Bugfix, when the work needs the full process. The same task enters Discuss with its conversation history, saved plan and artifacts as context. The workflow's Plan approval governs subsequent work. [Chat guide](https://qualitylayer.dev/docs/chat).
 
@@ -142,7 +142,7 @@ Only `ql-workflow` starts the planning and build workflow; the others work on th
 
 <h2 id="features">The Workflow</h2>
 
-Each step writes a Markdown file in your repository. Your agent follows a short instruction for each step and decides how to carry it out. Read questions, decisions and results in the App. You approve the Plan and the finished change; QualityLayer pushes only with your approval and leaves merging to you.
+Each step writes a Markdown file in your repository. Your agent follows a short instruction for each step and decides how to carry it out. Small changes keep a short Plan and one build step; larger work gets the detail it needs. Bugs start with reproduction and diagnosis. Read questions, decisions and results in the App. You approve the Plan and the finished change; QualityLayer pushes only with your approval and leaves merging to you.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/docusaurus/static/img/diagrams/flow-pr-dark.svg">

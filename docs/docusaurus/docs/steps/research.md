@@ -3,8 +3,8 @@ title: Research
 description: Agents read the code before anything is designed. You settle only what the code leaves open.
 ---
 
-![The eight steps, with Research highlighted](pathname:///img/diagrams/track-research-light.svg)
-![The eight steps, with Research highlighted](pathname:///img/diagrams/track-research-dark.svg)
+![The seven steps, with Research highlighted](pathname:///img/diagrams/track-research-light.svg)
+![The seven steps, with Research highlighted](pathname:///img/diagrams/track-research-dark.svg)
 
 Research maps how the code works today. It can start while you answer Discuss and needs no approval.
 
@@ -25,10 +25,10 @@ For a bug, Research is the diagnosis: how to reproduce it, the cause, what was r
 
 ## What you do {#what-you-do}
 
-Usually nothing. Comment on a finding you disagree with. If the code leaves a real choice open, **Your turn** asks a batch of questions.
+Usually nothing. Comment on a finding you disagree with. If the code leaves a real choice open, **Your turn** asks what only you can decide. Independent questions can arrive together.
 
 ## The document {#the-page}
 
-`02-research.md` opens with a plain summary. Read the risks and open questions first; they stay visible until you answer them. Then expand a finding for its evidence. Earlier answers and code references stay in the document.
+`02-research.md` opens with a plain summary. Read the risks and open questions first. Your agent investigates what it can and asks you only about choices it cannot settle. Then expand a finding for its evidence. Earlier answers and code references stay in the document.
 
 Next: [Plan](plan.md).

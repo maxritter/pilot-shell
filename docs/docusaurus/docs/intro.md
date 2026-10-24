@@ -24,9 +24,9 @@ Choose **Chat** for a direct conversation with Claude Code or Codex. It has no w
 
 Choose **Feature** or **Bugfix** for the structured workflow below: agree on the Plan before code, then review the checked result before shipping.
 
-## The eight steps {#the-seven-steps}
+## The workflow {#the-seven-steps}
 
-The first seven steps each write one document. You approve twice: the Plan, then the finished change. After you start the build, your agent runs Outline, Implement and Verify without workflow questions. Anything only you can do waits for Review.
+The first seven steps each write one document. You approve twice: the Plan, then the finished change. After you start the build, your agent works through Outline, Implement and Verify. It brings you only decisions that need you; available independent work can continue.
 
 Each step gives your agent a short instruction, and the agent decides how to carry it out. QualityLayer holds only what a text cannot guarantee:
 
@@ -35,8 +35,8 @@ Each step gives your agent a short instruction, and the agent decides how to car
 - recorded evidence for every check and verdict
 - the records the App shows
 
-![The eight steps from Discuss to the pull request; you approve the Plan and the finished change, and merge](pathname:///img/diagrams/flow-pr-light.svg)
-![The eight steps from Discuss to the pull request; you approve the Plan and the finished change, and merge](pathname:///img/diagrams/flow-pr-dark.svg)
+![The workflow from Discuss to the pull request; you approve the Plan and the finished change, and merge](pathname:///img/diagrams/flow-pr-light.svg)
+![The workflow from Discuss to the pull request; you approve the Plan and the finished change, and merge](pathname:///img/diagrams/flow-pr-dark.svg)
 
 | Step | What happens |
 | --- | --- |

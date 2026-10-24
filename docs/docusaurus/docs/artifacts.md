@@ -12,6 +12,8 @@ An artifact is a mockup, diagram or clickable set of pages you work on with your
 
 Ask “Using QL, show two layouts for the settings page.” This creates an artifact without starting a workflow. A task's draft appears as a compact entry in **Files**; reusable artifacts appear in the **Library**.
 
+In a Plan, **Open in a card** enlarges the exact preview above the same document. Close it to return to your place. **Open full size** opens the artifact viewer; it is a separate action.
+
 ## The Artifacts place {#artifacts-place}
 
 ![The artifact Library, grouped by project, with search, Favorites, List and Gallery views](pathname:///img/app/artifacts-light.webp)

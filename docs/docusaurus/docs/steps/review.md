@@ -3,8 +3,8 @@ title: Review
 description: Settle what agents could not settle for you, look at the result, and approve. Open a pull request when you choose.
 ---
 
-![The eight steps, with Review highlighted](pathname:///img/diagrams/track-review-light.svg)
-![The eight steps, with Review highlighted](pathname:///img/diagrams/track-review-dark.svg)
+![The workflow, with Review highlighted](pathname:///img/diagrams/track-review-light.svg)
+![The workflow, with Review highlighted](pathname:///img/diagrams/track-review-dark.svg)
 
 The final approval is always yours. After Outline, Implement and Verify, Review brings back the decisions and unverified checks that need you. It shows the whole change with proof for each **Done means** point.
 
@@ -24,6 +24,8 @@ The final approval is always yours. After Outline, Implement and Verify, Review 
 Routine build decisions stay under **Decided while building**. Open the record to read them or **Ask why**; they do not each require a confirmation.
 
 What Verify left open stands first ([two runs](verify.md#rounds)), together with cards the build left unticked and needs it recorded. **Fix open items** runs one more round on just those items; you can also approve with the item open or request changes.
+
+When checks remain unverified, review their disclosure and choose **Accept these limits** or request changes. Accepting limits records your decision; it does not pass the checks or approve the change. Final approval is separate.
 
 ## The page {#the-page}
 
@@ -87,5 +89,5 @@ Nothing is pushed or merged without your yes. A task built on your main branch h
 | | How | What stays |
 | --- | --- | --- |
 | **Stop** | Tell your agent | The documents |
-| **Archive** | The task's **…** menu; **Restore** undoes it | Everything |
-| **Delete** | The same menu | Nothing: the plan folder goes to the Trash |
+| **Archive** | The task header; **Restore** undoes it. Compact screens use **More** | Everything |
+| **Delete** | Confirm **Delete for good** in the task header | Task documents and local records are permanently removed; repository code and branch stay |

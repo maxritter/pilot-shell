@@ -198,7 +198,7 @@ export default function Editorial() {
         <div className="ed-outcome" id="films"><p>Every decision, document and test run stays with the change.</p><div><a href="/docs/">Read the workflow docs</a><a href={FILMS.overview.src} target="_blank" rel="noopener noreferrer">Watch the walkthrough</a></div></div>
       </section>
       <section id="extras" className="ed-section mx-wrap" aria-labelledby="ed-context-h">
-        <div className="ed-head"><h2 id="ed-context-h">Also in the App</h2><p>Tools for your Feature and Bugfix tasks.</p></div>
+        <div className="ed-head"><h2 id="ed-context-h">Also in the App</h2><p>Chat with Claude Code or Codex. Save a plan, build in slices, make artifacts, or ask for checks and an independent review when you need them.</p></div>
         <Extras active={extra} onPick={setExtra} theme={theme} onOpen={open} />
       </section>
       {shown ? <ImageDialog shot={shown.shot} theme={theme} opener={shown.opener} onClose={() => setShown(null)} /> : null}

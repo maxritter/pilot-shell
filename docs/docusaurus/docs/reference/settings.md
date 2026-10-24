@@ -47,7 +47,7 @@ Standing instructions for every task in every project: coding standards, things 
 
 ### Independent review {#independent-review}
 
-Whether an agent that never wrote the code checks the change in [Verify](../steps/verify.md): **On** (recommended) or **Off**. When on, it checks every change, small ones included, in at most two runs. It adds the missing tests and rules on every **Done means** point. Pick its model for each agent: Opus 5.5 by default in Claude Code, GPT-6.1 Sol in Codex, Pi and OpenCode, Auto in Cursor, Grok 4.7 in Grok and Gemini 3.8 Flash (High) in Antigravity. With the setting off, no fresh agent checks any change and Verify records **Checked without an independent judge**.
+Whether an agent that never wrote the code checks the change in [Verify](../steps/verify.md): **On** (recommended) or **Off**. When on, a fresh agent checks the change against each **Done means** point and adds missing tests. The build session fixes findings and requests a recheck; remaining gaps stay visible in Review. Pick its model for each agent: Opus 5.5 by default in Claude Code, GPT-6.1 Sol in Codex, Pi and OpenCode, Auto in Cursor, Grok 4.7 in Grok and Gemini 3.8 Flash (High) in Antigravity. With the setting off, no fresh agent checks any change and Verify records **Checked without an independent judge**.
 
 ### Second opinion {#second-opinion}
 
@@ -83,13 +83,16 @@ The **⋯** menu on a row offers **Repair skill and hooks** and **Edit launch…
 | **Command** | The program that starts the agent, as an absolute path. Empty uses the one found on your computer |
 | **Extra arguments** | Added to every start. Arguments that switch off permission checks are refused |
 | **Config folder** | Where the agent keeps its settings, for agents that let it be moved |
+| **Default effort** | The effort new runs start with. High is recommended; Low appears only when supported. A per-task choice takes precedence |
 | **Default permission mode** | The mode a run starts in. A mode that skips every check is chosen per run, never as a default ([modes](../agents/native.md#permission-modes)) |
 
 An environment variable such as `QUALITYLAYER_CODEX_BIN` wins over **Command**, which wins over what is found on your PATH. Changing what starts a program needs the App itself or a browser paired with its key; agents and the command line cannot.
 
 **Another agent** takes the program and arguments of any coding agent that runs shell commands. It gets the request and the CLI instructions in its own terminal. **Terminal › Shell** sets what a plain Terminal opens in a task or artifact.
 
-The agent, model, effort and branch belong to each run. New task and Start the build open with your last choice, so Settings has no default for them.
+Choose the agent, model, effort and branch for each run. **Edit launch…** saves an effort default for the agent; a per-task choice takes precedence. Changing it does not alter a running session or the agent's own configuration.
+
+If saved Planning and Implement efforts differ, the sheet shows both. Editing another field preserves them; choosing an effort applies it to both.
 
 Where the agent runs also decides where you answer. **In the App** keeps questions, approvals and artifact feedback in the App or browser; **In my terminal** uses the agent's chat. See [Terminal mode](commands.md#terminal-mode) for CLI controls and document reading.
 

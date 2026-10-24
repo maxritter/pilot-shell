@@ -3,8 +3,8 @@ title: Verify
 description: The project checks, then a fresh agent that did not write the code rules on every Done means point, with evidence.
 ---
 
-![The eight steps, with Verify highlighted](pathname:///img/diagrams/track-verify-light.svg)
-![The eight steps, with Verify highlighted](pathname:///img/diagrams/track-verify-dark.svg)
+![The seven steps, with Verify highlighted](pathname:///img/diagrams/track-verify-light.svg)
+![The seven steps, with Verify highlighted](pathname:///img/diagrams/track-verify-dark.svg)
 
 Verify starts when the build session says the build is ready. It proves the change with recorded evidence and asks you nothing; whatever stays open goes to Review. Nothing is marked passed without evidence.
 
