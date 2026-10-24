@@ -33,7 +33,7 @@ Ask the agent for any of these without entering the workflow:
 | **Run checks** | Read the outline's validation commands and run them, retaining their results. Listing commands is not proof they passed |
 | **Get an independent review** | Give a fresh reviewer its own brief, save the report and address concrete findings. If no independent reviewer is available, say so |
 
-Slice building needs a saved plan and an outline with slice headings, task cards and validation commands. Running helpers must finish or be stopped before replacing that build or starting the workflow. The agent stops a helper through its native controls before recording the slice as stopped. These tools add no workflow approval gates.
+Slice building needs a saved plan and an outline with slice headings, task cards and validation commands. The [Chat skill](agents/native.md#the-six-skills) gives your agent a complete example of that format. Running helpers must finish or be stopped before replacing that build or starting the workflow. The agent stops a helper through its native controls before recording the slice as stopped. These tools add no workflow approval gates.
 
 For direct CLI use:
 
