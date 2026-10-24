@@ -1,0 +1,431 @@
+{
+  "schema": 1,
+  "kind": "legacy9-public-feedback-source-review",
+  "reviewedAt": "2026-10-24T05:15:32.928989+00:00",
+  "sourceCommit": "1317b7227736a46268a790929109cb58b5a015aa",
+  "base": "824d98db82ad92e3c172c6e577f22b461df4442b",
+  "overlayDigest": "1477568e0dac42d47ed8a38393f0ef5dd9ee1dc9e400f68dc6cc3c4109a9bd59",
+  "scope": "Reviewed source package for the already approved public feedback delivery; normal prepared output, live configuration and release qualification remain separate.",
+  "payloads": [
+    {
+      "path": "_lib/beta9-artifacts.test.ts",
+      "sha256": "c0ad4b4686055961fcb17d9b5cc1ed06c9a1333f061f09786e18fe17dc609100"
+    },
+    {
+      "path": "_lib/beta9-artifacts.ts",
+      "sha256": "aa0bd6176f53e91330623d5b5914056c61d7d5c31c4b4b552f619c0172595b56"
+    },
+    {
+      "path": "_lib/beta9-files.test.ts",
+      "sha256": "0046bae542f731f599ff351dbf27ce7662843221e7d18228901d718af6d1b20d"
+    },
+    {
+      "path": "_lib/beta9-schema.sql",
+      "sha256": "5184e71904f0ecd7578693f2e8d8d8852d873b62df75a1beefbab849e750b985"
+    },
+    {
+      "path": "_lib/billing-auth.ts",
+      "sha256": "d6a94c585d06abfbccce4f0e9ed8a7657d456c515ef891033e8843f41471d917"
+    },
+    {
+      "path": "_lib/billing-data.ts",
+      "sha256": "0f585ca8f03824084db17252d6fb1e97a5a66345b07afbd03ebe0da96ce03f9c"
+    },
+    {
+      "path": "_lib/billing-fixture.ts",
+      "sha256": "1d082e3a825ed1694957964aa51c20f595784c97078a7f02004a978d415c382e"
+    },
+    {
+      "path": "_lib/billing-read.test.ts",
+      "sha256": "266db5047d20e9292841a39831b424d9be91b6c9bf676c38a77949c0791ffe30"
+    },
+    {
+      "path": "_lib/billing-read.ts",
+      "sha256": "2bb02b0915d1379713587e9d01c6da3d4a62e900610cf8d9758f35523f76e69b"
+    },
+    {
+      "path": "_lib/feedback-admission.test.ts",
+      "sha256": "34f094841e90d973f21c44fe33fd4357c66694f0b368d2bacc6e3a92e988e0af"
+    },
+    {
+      "path": "_lib/feedback-admission.ts",
+      "sha256": "7c19677e85d79b557c42a16e67087e52d35ea53eec5883f32185aa6918d0a26c"
+    },
+    {
+      "path": "_lib/legacy9-client.fixture.txt",
+      "sha256": "ef9bd37c08958685773d775b50b3a677d8cf2c5e945e055cc29679527c75b5e1"
+    },
+    {
+      "path": "_lib/public-feedback-delivery.ts",
+      "sha256": "f596e53b46785cc22aeefac96d14ca541eb51bb0057af3bfe06bc72f656e8137"
+    },
+    {
+      "path": "_lib/public-feedback-flow.test.ts",
+      "sha256": "07efd76e273abc2c7d6dbb2346987935f975bc0dc669acf201a53c1faf8e4dc6"
+    },
+    {
+      "path": "_lib/public-feedback-http-flow.test.ts",
+      "sha256": "6a8047b76d9bb00f3e7b237bc18614dc122e96074715ec57ecd0dbd1a6831837"
+    },
+    {
+      "path": "_lib/public-feedback-http.ts",
+      "sha256": "d81ff6239fbf0d1f90a92bab0beb5c009e7d9ee4608ae0de61d36ecd54b6ea30"
+    },
+    {
+      "path": "_lib/public-feedback-images.test.ts",
+      "sha256": "d7aa3c9941f6aeb4c3e1afdc3e87b6b7d0aa36623a39516e139572ca10c84ec4"
+    },
+    {
+      "path": "_lib/public-feedback-images.ts",
+      "sha256": "cb36de4a8c05f66e51af55050c97172137aeb08a78d907da3e1f9925841c8ab6"
+    },
+    {
+      "path": "_lib/public-feedback-integration.test.ts",
+      "sha256": "468faa3c9c895e7ecaff73f5c0cecbef1e3a082f46dc0888f92b05453da24996"
+    },
+    {
+      "path": "_lib/public-feedback-prepare.test.ts",
+      "sha256": "ecd0844bed2ae7d9b520053f7685fa172f688724292ae8182bc0f0f4dbd46afa"
+    },
+    {
+      "path": "_lib/public-feedback-prepare.ts",
+      "sha256": "f422572165a97861ab0a30c609c442dcacd13189d9494b7522edbcf723c32e11"
+    },
+    {
+      "path": "_lib/public-feedback-receipts.ts",
+      "sha256": "0e034f860dba43276b2617c484b25b2dd404ed64b5705e4b2bfc3a09769c8b76"
+    },
+    {
+      "path": "_lib/public-feedback-runtime.ts",
+      "sha256": "b207d16971420e36c2e37377a9a7ea8bf27a9823ca88a0a48cb3fb7269925944"
+    },
+    {
+      "path": "_lib/public-feedback-service.ts",
+      "sha256": "e1c1f62add2c833addd9ade26a3c2180b15a336d9ce869364429fa3a9827b5b8"
+    },
+    {
+      "path": "_lib/public-feedback-staging.ts",
+      "sha256": "2c0e5e306032c6141da4f9c27963780ae0611fd0667711639b81e60b1f8a50f7"
+    },
+    {
+      "path": "_lib/public-feedback-storage.ts",
+      "sha256": "8b828a0bdc745d65bc5d93de05528e0f9e018622c722cdf50e719a0df76d3398"
+    },
+    {
+      "path": "_lib/public-feedback.test.ts",
+      "sha256": "50c46df8f4e12b7b3eec68fe4c5942892310015840e21f51ac00adcebf4b99cc"
+    },
+    {
+      "path": "_lib/public-feedback.ts",
+      "sha256": "d6acf3df501d30ac5f2f1b59794345aa12a351d674d5747e76e2f8a9ed328e3e"
+    },
+    {
+      "path": "_lib/releases.ts",
+      "sha256": "3f8c468340034ba0e6cb798b40a3c19e139c46ee9f8ae4ca4963ea2da4169531"
+    },
+    {
+      "path": "_lib/sha256.ts",
+      "sha256": "a0eb71745a67b89d7601bd8f110436589f839e12cf82845cc180bb83405d3dc0"
+    },
+    {
+      "path": "_lib/slack.ts",
+      "sha256": "26839d4bec96a952e05c804e15a4557f545af7a0fd0cbaa8a154cf60b7879f8d"
+    },
+    {
+      "path": "_lib/team-file-store.ts",
+      "sha256": "f0c8a850962ec025c463c43e68e86219b3f0a32968c0ae2cefae8a3f7ed3437e"
+    },
+    {
+      "path": "app/downloads.test.ts",
+      "sha256": "e4b3222e3b93cf376c991f2ac2d6b1623688570ff202638a145c74f18ac73b27"
+    },
+    {
+      "path": "app/downloads.ts",
+      "sha256": "ad59852e5b9b475b9dc192f4e4e3581dbe415c4d9a72a3e14a76d7dc1048b8ec"
+    },
+    {
+      "path": "app/latest.test.ts",
+      "sha256": "ed22e6e60a8c4e3de145eae321032ecaa94a8829b944404a0e3304746069a4e8"
+    },
+    {
+      "path": "app/latest.ts",
+      "sha256": "1909464512c870b008ee6d4b8bfaf8faf48783e68ae40e3e1f83acce9a172780"
+    },
+    {
+      "path": "app/releases.test.ts",
+      "sha256": "0b5f10f8bd6cb49fb9a135a6236d36e2f02972d5d5397f7b1c51a378649d2293"
+    },
+    {
+      "path": "app/releases.ts",
+      "sha256": "520c59491941fbe79e709dbc271b4d1f88060d997d7c5a02acd470d5c01ec596"
+    },
+    {
+      "path": "billing.test.ts",
+      "sha256": "4b42c0ac3d239038b4d70450457c635da944ec58e8a2d213ad23b47eb97cbc40"
+    },
+    {
+      "path": "billing.ts",
+      "sha256": "15a98a2f8b363f08e94616de60aba3080f2d6b04a5719898e7ae9ab90af2b4a2"
+    },
+    {
+      "path": "feedback/public-image/[hash].ts",
+      "sha256": "f1d8c8988e41a012c70f045f522fc64e74cb09d99bb8e26bf266545609cb0f1b"
+    },
+    {
+      "path": "feedback/public/prepare.ts",
+      "sha256": "09499561273a4fa0163faee3f95f6190c8b3d738ba06e3eae1e1fe73601b7e71"
+    },
+    {
+      "path": "feedback/public/preview.ts",
+      "sha256": "ab820cc594e44611db0c9cb34c395aaba2d381d6c0c7924324040f36c05fec5b"
+    },
+    {
+      "path": "feedback/public/submit.ts",
+      "sha256": "6a70ca4d25cc472dbfd6e45e3877b1c13cbb8a1aba49e8df423a6ba02a1e6a3d"
+    },
+    {
+      "path": "routes.test.ts",
+      "sha256": "17381d475a8c10f9f3a0f1a09be314c997ed212f6a3c7c9e88e780e42efd1d16"
+    },
+    {
+      "path": "team/beta9-versions.test.ts",
+      "sha256": "394f21a81990af7c08c71c2704e800e4bf0cfc30bd5e06c4ea50b680abea7897"
+    },
+    {
+      "path": "team/files/[file].ts",
+      "sha256": "79ff6949b55f7107f56b0aa7d7d24920bd3a014cdc83854378743def0325dd6c"
+    },
+    {
+      "path": "team/slack.test.ts",
+      "sha256": "7cd85f9efa74e114bb7e7f583c73dc032af32acba3545d942753446974a8c6b6"
+    },
+    {
+      "path": "team/tasks/[task].ts",
+      "sha256": "9b3de66ea9ca3117e9c13bb03a78525315037f2ec6a5fb0de5cb6c2d5d2f4cc0"
+    },
+    {
+      "path": "team/tasks/[task]/editors.ts",
+      "sha256": "7e51114a59ddbb52ae2d52f5572e9e5e8a795fdd72c7dd368b3ea4f79ab04a45"
+    },
+    {
+      "path": "team/tasks/[task]/versions.ts",
+      "sha256": "b92c9df82c76e8162e80f56f4446c0af3c063851be03e05527646ee44c60c0b5"
+    }
+  ],
+  "publicClosure": [
+    {
+      "path": "_lib/feedback-admission.test.ts",
+      "sha256": "34f094841e90d973f21c44fe33fd4357c66694f0b368d2bacc6e3a92e988e0af"
+    },
+    {
+      "path": "_lib/feedback-admission.ts",
+      "sha256": "7c19677e85d79b557c42a16e67087e52d35ea53eec5883f32185aa6918d0a26c"
+    },
+    {
+      "path": "_lib/public-feedback-delivery.ts",
+      "sha256": "f596e53b46785cc22aeefac96d14ca541eb51bb0057af3bfe06bc72f656e8137"
+    },
+    {
+      "path": "_lib/public-feedback-flow.test.ts",
+      "sha256": "07efd76e273abc2c7d6dbb2346987935f975bc0dc669acf201a53c1faf8e4dc6"
+    },
+    {
+      "path": "_lib/public-feedback-http-flow.test.ts",
+      "sha256": "6a8047b76d9bb00f3e7b237bc18614dc122e96074715ec57ecd0dbd1a6831837"
+    },
+    {
+      "path": "_lib/public-feedback-http.ts",
+      "sha256": "d81ff6239fbf0d1f90a92bab0beb5c009e7d9ee4608ae0de61d36ecd54b6ea30"
+    },
+    {
+      "path": "_lib/public-feedback-images.test.ts",
+      "sha256": "d7aa3c9941f6aeb4c3e1afdc3e87b6b7d0aa36623a39516e139572ca10c84ec4"
+    },
+    {
+      "path": "_lib/public-feedback-images.ts",
+      "sha256": "cb36de4a8c05f66e51af55050c97172137aeb08a78d907da3e1f9925841c8ab6"
+    },
+    {
+      "path": "_lib/public-feedback-integration.test.ts",
+      "sha256": "468faa3c9c895e7ecaff73f5c0cecbef1e3a082f46dc0888f92b05453da24996"
+    },
+    {
+      "path": "_lib/public-feedback-prepare.test.ts",
+      "sha256": "ecd0844bed2ae7d9b520053f7685fa172f688724292ae8182bc0f0f4dbd46afa"
+    },
+    {
+      "path": "_lib/public-feedback-prepare.ts",
+      "sha256": "f422572165a97861ab0a30c609c442dcacd13189d9494b7522edbcf723c32e11"
+    },
+    {
+      "path": "_lib/public-feedback-receipts.ts",
+      "sha256": "0e034f860dba43276b2617c484b25b2dd404ed64b5705e4b2bfc3a09769c8b76"
+    },
+    {
+      "path": "_lib/public-feedback-runtime.ts",
+      "sha256": "b207d16971420e36c2e37377a9a7ea8bf27a9823ca88a0a48cb3fb7269925944"
+    },
+    {
+      "path": "_lib/public-feedback-service.ts",
+      "sha256": "e1c1f62add2c833addd9ade26a3c2180b15a336d9ce869364429fa3a9827b5b8"
+    },
+    {
+      "path": "_lib/public-feedback-staging.ts",
+      "sha256": "2c0e5e306032c6141da4f9c27963780ae0611fd0667711639b81e60b1f8a50f7"
+    },
+    {
+      "path": "_lib/public-feedback-storage.ts",
+      "sha256": "8b828a0bdc745d65bc5d93de05528e0f9e018622c722cdf50e719a0df76d3398"
+    },
+    {
+      "path": "_lib/public-feedback.test.ts",
+      "sha256": "50c46df8f4e12b7b3eec68fe4c5942892310015840e21f51ac00adcebf4b99cc"
+    },
+    {
+      "path": "_lib/public-feedback.ts",
+      "sha256": "d6acf3df501d30ac5f2f1b59794345aa12a351d674d5747e76e2f8a9ed328e3e"
+    },
+    {
+      "path": "_lib/sha256.ts",
+      "sha256": "a0eb71745a67b89d7601bd8f110436589f839e12cf82845cc180bb83405d3dc0"
+    },
+    {
+      "path": "feedback/public-image/[hash].ts",
+      "sha256": "f1d8c8988e41a012c70f045f522fc64e74cb09d99bb8e26bf266545609cb0f1b"
+    },
+    {
+      "path": "feedback/public/prepare.ts",
+      "sha256": "09499561273a4fa0163faee3f95f6190c8b3d738ba06e3eae1e1fe73601b7e71"
+    },
+    {
+      "path": "feedback/public/preview.ts",
+      "sha256": "ab820cc594e44611db0c9cb34c395aaba2d381d6c0c7924324040f36c05fec5b"
+    },
+    {
+      "path": "feedback/public/submit.ts",
+      "sha256": "6a70ca4d25cc472dbfd6e45e3877b1c13cbb8a1aba49e8df423a6ba02a1e6a3d"
+    }
+  ],
+  "protected": [
+    {
+      "path": "billing.ts",
+      "sha256": "15a98a2f8b363f08e94616de60aba3080f2d6b04a5719898e7ae9ab90af2b4a2",
+      "authority": "reviewed exact billing hotfix"
+    },
+    {
+      "path": "billing/webhook.ts",
+      "sha256": "9d4a19339708b5a5fb9ddc93c9ebbde1a5a5c60e447067fdcf208118ce26ad2a",
+      "authority": "pinned baseline"
+    },
+    {
+      "path": "_lib/billing-auth.ts",
+      "sha256": "d6a94c585d06abfbccce4f0e9ed8a7657d456c515ef891033e8843f41471d917",
+      "authority": "reviewed exact billing hotfix"
+    },
+    {
+      "path": "_lib/billing-data.ts",
+      "sha256": "0f585ca8f03824084db17252d6fb1e97a5a66345b07afbd03ebe0da96ce03f9c",
+      "authority": "reviewed exact billing hotfix"
+    },
+    {
+      "path": "_lib/polar.ts",
+      "sha256": "493244cfe4b4f61c3501c31440e136083898379c40726409f41a32b912ce98d3",
+      "authority": "pinned baseline"
+    },
+    {
+      "path": "_lib/polar-client.ts",
+      "sha256": "cb6ad0db77b016a756b3ce96d32d9d420b2e2388e5006ab7096b85c30d698173",
+      "authority": "pinned baseline"
+    },
+    {
+      "path": "_lib/team-pass.ts",
+      "sha256": "32a0730b2a7435b90b7ba3c4da3d9b195e3de81fe5fae87ea266a76096a6b9e4",
+      "authority": "pinned baseline"
+    },
+    {
+      "path": "team/pass.ts",
+      "sha256": "97abe2cfc7c6ad5a04594b067a5cd51dc8cc2c548cfb30b07efa609676528fd8",
+      "authority": "pinned baseline"
+    },
+    {
+      "path": "licence/entitlement.ts",
+      "sha256": "d446e230b776cf4a56d81bf507fc361c739f020255cb0c3c18f9d3b9e463d299",
+      "authority": "pinned baseline"
+    },
+    {
+      "path": "trial/start.ts",
+      "sha256": "e49905ed5bd648b3578afdcfc414ff079b0f1623c3a7ee649cedf8403bfd4bb5",
+      "authority": "pinned baseline"
+    },
+    {
+      "path": "_lib/team-store.ts",
+      "sha256": "2aaf1c183ddab660d98c15c495bbd578b2caca25974121d38cb4f4ac8c367e57",
+      "authority": "pinned baseline"
+    },
+    {
+      "path": "_lib/groups.ts",
+      "sha256": "cd3a0bb3079c900dcb26175340dc01bc6e5fa827979de10553d4181f4fb94341",
+      "authority": "pinned baseline"
+    },
+    {
+      "path": "_lib/db.ts",
+      "sha256": "eb36ca2290bad62b5c2ee47987e498341b9048149a8137bf505fd1b5f8f430a9",
+      "authority": "pinned baseline"
+    },
+    {
+      "path": "_lib/schema.sql",
+      "sha256": "a338affdec3a7d9e062288f52ce4f6f5a5366471d954f801d0691367f81ee27a",
+      "authority": "pinned baseline"
+    }
+  ],
+  "legacyAuthority": [
+    {
+      "path": "_lib/polar.ts",
+      "sha256": "493244cfe4b4f61c3501c31440e136083898379c40726409f41a32b912ce98d3",
+      "authority": "pinned baseline; no current launch implementation imported"
+    },
+    {
+      "path": "_lib/feedback-launch.ts",
+      "sha256": "1f52884a57781f35f8acf684e1af975b69a4a8f5582e53df1fcb45a2e68980bd",
+      "authority": "pinned baseline; no current launch implementation imported"
+    }
+  ],
+  "review": {
+    "classification": "Compatibility packaging repair for approved public reporting, with retained billing/release payloads; no new capability or launch migration.",
+    "sourceChecks": [
+      "All51 current payload SHA256 values match the exact normal-preparer allowlist;23 public-closure paths are explicit.",
+      "All14 protected paths keep baseline or named billing-hotfix authority; current launch polar/feedback code is not imported.",
+      "Original public repair RED/GREEN and full1139 bundle-loader proof remain historically scoped; new29tool/171native-route checks bind173 unique committed inputs at7f3.",
+      "Independent Claude read-only review confirmed no backend/caller drift7f3\u21921317 and identified the pending normal-preparer/full-native checks.",
+      "Root inspected actual admission/runtime/storage/image/Worker boundaries; TeamModel count and billing exception corrected before changing this manifest."
+    ],
+    "evidence": [
+      {
+        "path": "/private/tmp/ql-122-backend-rebind-7f3aacdd3/FINAL-REPORT.json",
+        "sha256": "39a069711c46797a52f10244b483190dc5f3cf25e63a279e40217122687365c5"
+      },
+      {
+        "path": "docs/plans/2026-10-23-customer-feedback-public-issues/evidence/public-reporting-rollout/independent-root-review/FINAL-RUN-RECEIPT.json",
+        "sha256": "1130e3e54a4326b141d459cc84bd48c2a3d39141c59188270d81f3f00d423df2"
+      },
+      {
+        "path": "docs/plans/2026-10-23-customer-feedback-public-issues/evidence/public-reporting-rollout/repair/FREEZE.json",
+        "sha256": "6acc10c1813463410c379e519bb6b6c59503ce3c4706f5638347a2c30f5d2e3b"
+      }
+    ]
+  },
+  "invariants": {
+    "database": "Schema9 plus the already approved additive beta9 artifact block only; no migration10/launch rebuild.",
+    "privateIntake": "Keep12/12.1 writable private contract and existing FEEDBACK_GITHUB_REPO meaning.",
+    "publicDestination": "maxritter/qualitylayer fixed by server; identity/support reply stays private.",
+    "images": "Explicit approved sanitized PNGs only;15minute staging, operation-scoped cancellation, immutable hash paths; revisioned delivery receipts.",
+    "secretsAndStorage": "No key/secret rotation or bucket change; existing authenticated Worker, EU BUCKET/BACKUP; staging excluded from backups and bounded cleanup.",
+    "deployment": "Only explicit qualitylayer-site Production project prj_SbOGJL2YBjvq9P5MSjxcrj87IGbi; no deployment authorized by this receipt."
+  },
+  "requiredBeforeDeployment": [
+    "Normal committed-source preparation success at the actual final release commit; exact157prepared-file comparison, protected14 and23public closure, tamper refusal and matching script provenance.",
+    "Full suite on that normal prepared output with pinned Node22.23.4/native config loader, one worker and unchanged1.5GiB cap; failures or budget stops remain failures.",
+    "Final source-bound global quality gates, runtime metadata/target/config checks, Worker source/binding association, public/legacy live smoke and release-owner publication checks."
+  ],
+  "status": "source-reviewed; preparation/full-native/live/release checks pending"
+}
